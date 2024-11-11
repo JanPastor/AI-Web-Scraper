@@ -138,43 +138,44 @@ with st.container():
                                 result = parse_with_ollama([chunk], parse_description)
                                 parsed_results.append(result)
                         
+                        # Store results in session state
                         st.session_state.parsed_results = parsed_results
                         st.session_state.current_query = parse_description
                         st.session_state.analysis_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-                        # Display results in tabs
-                        st.write("### 📊 Analysis Results")
-                        tabs = st.tabs([f"Batch {i+1}" for i in range(len(parsed_results))])
-                        
-                        for i, (tab, result) in enumerate(zip(tabs, parsed_results)):
-                            with tab:
-                                st.write(result)
-                                
-                                # Download buttons for each batch
-                                col1, col2 = st.columns(2)
-                                
-                                with col1:
-                                    st.download_button(
-                                        "📝 Download TXT",
-                                        result,
-                                        f"batch_{i+1}_result_{st.session_state.analysis_timestamp}.txt",
-                                        "text/plain",
-                                        key=f"download_txt_batch_{i+1}"
-                                    )
-                                
-                                with col2:
-                                    batch_data = {
-                                        'batch': i+1,
-                                        'query': parse_description,
-                                        'result': result
-                                    }
-                                    st.download_button(
-                                        "📊 Download JSON",
-                                        json.dumps(batch_data, indent=2),
-                                        f"batch_{i+1}_result_{st.session_state.analysis_timestamp}.json",
-                                        "application/json",
-                                        key=f"download_json_batch_{i+1}"
-                                    )
+    # Display results if they exist in session state
+    if 'parsed_results' in st.session_state:
+        st.write("### 📊 Analysis Results")
+        tabs = st.tabs([f"Batch {i+1}" for i in range(len(st.session_state.parsed_results))])
+        
+        for i, (tab, result) in enumerate(zip(tabs, st.session_state.parsed_results)):
+            with tab:
+                st.write(result)
+                
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    st.download_button(
+                        "📝 Download TXT",
+                        result,
+                        f"batch_{i+1}_result_{st.session_state.analysis_timestamp}.txt",
+                        "text/plain",
+                        key=f"download_txt_batch_{i+1}"
+                    )
+                
+                with col2:
+                    batch_data = {
+                        'batch': i+1,
+                        'query': st.session_state.current_query,
+                        'result': result
+                    }
+                    st.download_button(
+                        "📊 Download JSON",
+                        json.dumps(batch_data, indent=2),
+                        f"batch_{i+1}_result_{st.session_state.analysis_timestamp}.json",
+                        "application/json",
+                        key=f"download_json_batch_{i+1}"
+                    )
 
 # Footer
 st.write("---")
