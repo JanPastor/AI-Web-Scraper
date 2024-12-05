@@ -25,7 +25,11 @@ def parse_with_ollama(dom_chunks, parse_description):
             {"dom_content": chunk, "parse_description": parse_description}
         )
         print(f"Parsed batch: {i} of {len(dom_chunks)}")
-        parsed_results.append(response)
+        # Extract content from AIMessage or similar message types
+        if hasattr(response, 'content'):
+            parsed_results.append(response.content)
+        else:
+            parsed_results.append(str(response))
 
     return "\n".join(parsed_results)
 
